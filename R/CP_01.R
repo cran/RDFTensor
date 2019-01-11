@@ -255,4 +255,39 @@ CP_01ext <- function(X,P,pthr=c(1E-6,1e-4,0.001,0.01,0.05,0.1,0.2,0.3,0.4, 0.5,0
     fp=sum(sr[,'fp'])
     return(list(X_,tp=tp,fn=fn,fp=fp,sr=sr)) 
  }
+
+ ### 22/11/2018
+
+getCP_val<-function(P,ijk){
+#P is the factorization as KTensor:list(lambda,u)
+#ijk indexes on the 3-mode tensor
+# get the values corresponding to triples from the factorization
+
+ A=P$u[[1]]
+ B=P$u[[2]]
+ C=P$u[[3]]
  
+ # absorb lambda's
+ A = A%*%diag(P$lambda^(1/3)); B = B%*%diag(P$lambda^(1/3)); C = C%*%diag(P$lambda^(1/3));
+ r1s=rowSums(A[ijk[,1],]*B[ijk[,2],]*C[ijk[,3],])
+ return(cbind(ijk,r1s))
+}
+
+
+absorb_lambdas<-function(P){
+#P is the factorization as KTensor:list(lambda,u)
+# make lambda 1's
+
+ A=P$u[[1]]
+ B=P$u[[2]]
+ C=P$u[[3]]
+ 
+ # absorb lambda's
+    A = A%*%diag(P$lambda^(1/3)); B = B%*%diag(P$lambda^(1/3)); C = C%*%diag(P$lambda^(1/3));
+    
+    return(list(lambda=rep(1,3),u=list(A,B,C)))
+ }
+ 
+ CP_get_Frontal_slice<-function(P,s=1){
+   return(P$u[[1]]%*%diag(P$u[[3]][s,,drop=TRUE])%*%t(P$u[[2]]))
+ }

@@ -2,8 +2,8 @@ Package: RDFTensor
 Type: Package
 Title: Different Tensor Factorization (Decomposition) Techniques for
         RDF Tensors (Three-Mode-Tensors)
-Version: 1.0
-Date: 2018-11-16
+Version: 1.1
+Date: 2019-1-11
 Author: Abdelmoneim Amer Desouki
 Maintainer: Abdelmoneim Amer Desouki <desouki@mail.upb.de>
 Depends: R (>= 3.2.0), Matrix, methods, pracma
@@ -20,6 +20,6 @@ Description: Different Tensor Factorization techniques suitable for RDF Tensors.
             These methods also are for general tensors, so with few modifications they can be applied for other types of tensor.
 License: GPL-3
 NeedsCompilation: no
-Packaged: 2018-11-17 04:55:34 UTC; Abdelmonem
+Packaged: 2019-01-11 02:22:36 UTC; Abdelmonem
 Repository: CRAN
-Date/Publication: 2018-11-27 17:20:03 UTC
+Date/Publication: 2019-01-11 12:30:11 UTC

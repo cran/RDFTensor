@@ -13,6 +13,7 @@ export(CP_01)
 export(CP_R01)
 export(tnsr2trp)
 export(getTnsrijk)
+export(getTensor3m)
 export(default_parcube_options)
 
 importFrom("methods", "as", "is")

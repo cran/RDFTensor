@@ -121,7 +121,7 @@ if (is(init)[1]=="list"){
 					# tt=eigen(S)#NB: need only rnk vectors but no option to specify it in R eigen
 					# A = tt$vectors[,1:R]
 					if (k < R){#difficult to be achieved
-					  Uinit[[n]] = rBind(Uinit[[n]],matrix(runif(sizeX[n]*(R-k)), ncol=R-k,byrow=TRUE))#[Uinit{n} rand(size(X,n),R-k)]; 
+					  Uinit[[n]] = rbind(Uinit[[n]],matrix(runif(sizeX[n]*(R-k)), ncol=R-k,byrow=TRUE))#[Uinit{n} rand(size(X,n),R-k)]; 
 					}
 				}
 			}else{
