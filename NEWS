@@ -1,6 +1,17 @@
 RDFTensor Version History
 
 # ------------------------------------------------------- #
+Version 1.2    2020-05-31
+# ------------------------------------------------------- #
+
+- add scalable RESCAL, parallel, compact, nvecs (using rARPACK)
+- add Reconstruction of RESCAL
+- add function tensor2mat
+- add get rescal_Trp_Val Triple scores from RESCAL factorization
+- add vignettes
+- corrected bug in getting tensor from triples
+
+# ------------------------------------------------------- #
 Version 1.1    2019-01-11
 # ------------------------------------------------------- #
 

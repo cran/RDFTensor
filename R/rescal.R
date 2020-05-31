@@ -87,9 +87,9 @@ rescal <- function(X, rnk,ainit = 'nvecs',verbose=2,Ainit=NULL,Rinit=NULL,lambda
         }
 		A=Ainit;
 	}else{
-		print('Initializing A')
+		if(verbose>0) print('Initializing A')
 		if (ainit == 'random'){
-			print("Initializing A with random values...")
+			if(verbose>0) print("Initializing A with random values...")
 			A <- matrix(runif(n*rnk), ncol=rnk,byrow=TRUE)
 			if(verbose>2){print(A)}
 			}
@@ -101,10 +101,10 @@ rescal <- function(X, rnk,ainit = 'nvecs',verbose=2,Ainit=NULL,Rinit=NULL,lambda
 					S = S + X[[i]]
 					S = S + Matrix::t(X[[i]])
 				}
-				print("Calculating  eigen vectors...")
+				if(verbose>0) print("Calculating  eigen vectors...")
 				tt=eigen(S)#NB: need only rnk vectors but no option to specify it in R eigen
 				A = tt$vectors[,1:rnk]
-                if(verbose>1 && rnk<=10){
+                if(verbose>2 && rnk<=10){
                     print("initial A ................")
                     print(A)
                 }
@@ -115,7 +115,7 @@ rescal <- function(X, rnk,ainit = 'nvecs',verbose=2,Ainit=NULL,Rinit=NULL,lambda
 		}
 	}
     # ------- initialize R and Z ---------------------------------------------
-    print("initialize R and Z...")
+    if(verbose>0)print("initialize R and Z...")
 	if(!is.null(Rinit)){
 		R=Rinit
 	}else{
@@ -124,7 +124,7 @@ rescal <- function(X, rnk,ainit = 'nvecs',verbose=2,Ainit=NULL,Rinit=NULL,lambda
         # print(R[[1]])
 		tUR= proc.time()
 		if(verbose>2){print(R)}
-		print(sprintf('updateR in:%.3f sec',(tUR-t1)[3]))
+		if(verbose>1) print(sprintf('updateR in:%.3f sec',(tUR-t1)[3]))
 	}
     Z = updateZ(A, P, lambdaV)
 
@@ -134,26 +134,26 @@ rescal <- function(X, rnk,ainit = 'nvecs',verbose=2,Ainit=NULL,Rinit=NULL,lambda
     for(p in 1:length(X)){
         sumNorm = sumNorm + sum(X[[p]]@x^2)#RDF tensor [sum(M.data ** 2) for M in X]
     }
-    print(sprintf("sumNorm:%f",sumNorm))
+    if(verbose>1)print(sprintf("sumNorm:%f",sumNorm))
     #  ------ compute factorization ------------------------------------------
-    print("compute factorization...")
+    if(verbose>1) print("compute factorization...")
 	fit = fitchange = fitold = 0
     exectimes = NULL
 	all_err=NULL #maintain a list of errors in every iteration 
     for (itr in 1:maxIter){
-		print(sprintf("-----------------------------iteration: %d ----------------------------------",itr))
+		 if(verbose>0) print(sprintf("-----------------------------iteration: %d ----------------------------------",itr))
         tic = proc.time()
         fitold = fit
 		Aold=A
         A = updateA(X, A, R, P, Z, lambdaA, orthogonalize)
 			if(verbose>2){print(A)}
 		tUA= proc.time()
-		print(sprintf('updateA in:%.3f sec',(tUA-tic)[3]))
-		print("Update R...")
+		if(verbose>1) print(sprintf('updateA in:%.3f sec',(tUA-tic)[3]))
+		if(verbose>1) print("Update R...")
         Rold=R
 		R = updateR(X, A, lambdaR,verbose)
 		tUR= proc.time()
-		print(sprintf('updateR in:%.3f sec',(tUR-tUA)[3]))
+		if(verbose>1) print(sprintf('updateR in:%.3f sec',(tUR-tUA)[3]))
 			if(verbose>2){print(R)}
         Z = updateZ(A, P, lambdaV)
 
@@ -165,8 +165,8 @@ rescal <- function(X, rnk,ainit = 'nvecs',verbose=2,Ainit=NULL,Rinit=NULL,lambda
                 }else{
                   fit=compute_fit(X, A, R ,normX=sumNorm)#, lambdaA, lambdaR,
                 }
-                    print(fit)
-                    print(sprintf('Calc fit in:%.3f sec',(proc.time()-tUR)[3]))
+                    # print(fit)
+                    if(verbose>1) print(sprintf('Calc fit in:%.3f sec',(proc.time()-tUR)[3]))
                     fitchange = abs(fitold - fit)
 			}else{
 				fit = Inf
@@ -176,8 +176,7 @@ rescal <- function(X, rnk,ainit = 'nvecs',verbose=2,Ainit=NULL,Rinit=NULL,lambda
         toc = proc.time()
         exectimes=c(exectimes,toc[3] - tic[3])
 		all_err=rbind(all_err,cbind(itr,fit=fit,delta=fitchange,Ex_time=exectimes[itr]))
-        print(sprintf('[%3d] fit: %0.5f | delta: %7.1e | secs: %.5f',
-            itr, fit, fitchange, exectimes[itr])
+        if(verbose>0) print(sprintf('[%3d] fit: %0.5f | delta: %7.1e | secs: %.5f', itr, fit, fitchange, exectimes[itr])
         )
         if (itr > minIter && fitchange < epsilon){
             break;
@@ -232,7 +231,7 @@ Tensor_error <- function(X, A, R){
 		tmp=X[[i]] - ARAt
         err = err + (Matrix::norm(tmp,'f') ^ 2)  
         t1=proc.time()
-		print(sprintf("i=%d, Err=%f, t=%.3f",i,err,(t1-t0)[3]))
+		if(get("verbose", parent.frame())>1)print(sprintf("i=%d, Err=%f, t=%.3f",i,err,(t1-t0)[3]))
         rm(tmp)#memory issues
 		gc()
 	}
@@ -264,7 +263,7 @@ compute_fit <-function(X, A, R,normX=NULL){#unused Params:, P, Z, lmbdaA, lmbdaR
 		# print(sprintf('Time to calc difference:%f',(t3-t2)[3]))
         f = f + (Matrix::norm(tmp,'f') ^ 2) 
    }
-   print(sprintf("f=%f",f))
+   if(get("verbose", parent.frame())>1) print(sprintf("f=%f",f))
     return (1 - f / sumNorm)
 }
 # ---------------------------------------------------------------------------

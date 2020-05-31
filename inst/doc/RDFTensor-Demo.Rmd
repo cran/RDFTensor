@@ -1,0 +1,89 @@
+---
+title: "RDFTensor"
+author: "Abdelmoneim Amer Desouki"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteIndexEntry{RDFTensor Package}
+  \usepackage[UTF-8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Scalable RESCAL Factorization
+
+RDFTensor gives a scalable implementation of RESCAL tensor factorization which includes parallelization of steps and compact representation of slices.
+The following is a demonstration applied to dataset **UMLS** which is represented in 135 x 135 x 49 Tensor.
+
+
+```{r, echo=FALSE, include=FALSE}
+ library(RDFTensor)
+
+  data('umls_tnsr')
+   ntnsr=umls_tnsr#old format
+```
+
+## Calculate RESCAL Factorization
+
+```{r, echo=TRUE}   
+    tt=rescal(ntnsr$X,rnk=10,ainit='nvecs',verbose=1,lambdaA=0,epsilon=1e-4,lambdaR=0)
+#tt=scRescal(ntnsr$X,rnk=10,ainit='nvecs',verbose=1,lambdaA=0,epsilon=1e-4,lambdaR=0,ncores = 2,OS_WIN = TRUE)
+    A=tt$A
+    R=tt$R
+```
+
+## Calculate scores of triples
+
+Use function **rescal_Trp_Val** to calculate scores of triples in the graph using the factorization obtained from previous step.
+
+```{r, echo=TRUE}
+
+      res=rescal_Trp_Val(R=R,A=A,ntnsr,verbose=0)
+    
+    plot(density(res[,'val']),main='RESCAL Factorization rank=10, density of triples of UMLS')
+    print(summary(res[,'val']))
+```
+
+## Reconstruct tensor 
+
+```{r, echo=TRUE}
+    RecRes=RescalReconstructBack(R=R,A=A,otnsr=ntnsr,ncore=2,verbose=0,OS_WIN=TRUE,generateLog=TRUE)
+```
+
+## calculate metrics
+
+Calculate Recall (True positive rate), Precision and Harmonic mean.
+
+```{r, echo=TRUE}
+    print(sprintf('True positive rate:%.2f %%',100*sum(RecRes$TP)/length(RecRes$TP)))
+    s=2#<affects> predicate 
+    stats=NULL
+    ijk=RecRes[[1]]$ijk
+    val=RecRes[[1]]$val
+    tp_flg=RecRes$TP
+    
+    for(thr in sort(unique(val[tp_flg&ijk[,2]==s]),decreasing=TRUE)){
+        tp=sum(tp_flg[val>=thr & ijk[,2]==s])
+        fp=sum(val>=thr & ijk[,2]==s)-tp
+        fn=sum(ntnsr$X[[s]])-tp
+        stats=rbind(stats,cbind(thr=thr,R=tp/(tp+fn),P=tp/(tp+fp),tp=tp,fn=fn,fp=fp))
+    }
+    HM=apply(stats,1,function(x){2/(1/x['P']+1/x['R'])})
+
+     plot(stats[,'thr'],stats[,'R']*100,type='l',col='red',lwd=2,
+    main=sprintf('Slice:%d, Predicate:<%s>, #Triples:%d, Max HM @ %.4f',s,ntnsr$P[s],sum(ntnsr$X[[s]]),
+     stats[which.max(HM),'thr']), ylab="",xlab='Threshold ',cex.main=0.85,
+                     xlim=c(0,max(thr,1)),ylim=c(0,100))
+    abline(h = c(0,20,40,60,80,100), lty = 2, col = "grey")
+    abline(v = seq(0.1,1,0.1),  lty = 2, col = "grey")
+    lines(stats[,'thr'],stats[,'P']*100,col='blue',lwd=2)
+    lines(stats[,'thr'],100*HM,col='green',lwd=2)
+    # grid(nx=10, lty = "dotted", lwd = 1)
+    legend(legend=c('Recall','Precision','Harmonic mean'),col=c('red','blue','green'),x=0.6,y=20,pch=1,cex=0.75,lwd=2)
+    abline(v=stats[which.max(HM),'thr'],col='grey')
+ ```
+ 

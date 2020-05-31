@@ -44,12 +44,12 @@ getTensor<-function(trp,SO=NULL,P=NULL){
 	for(p in 1:m){
 		Xp=Matrix::sparseMatrix(i=1,j=1,x=0,dims=c(n, n))
 		Xp[G[G[,3]==p,1:2,drop=FALSE]]=1
-		X[[p]]=as(Xp, "TsparseMatrix")#i,j,x
+		X[[p]]=methods::as(Xp, "TsparseMatrix")#i,j,x
 	}
 	return(list(X=X,n=n,m=m,SO=SO,P=P))
 }
 
-getTensor3m <- function(trp,S=NULL,P=NULL,O=NULL){
+getTensor3m <- function(trp, S = NULL, P = NULL, O = NULL){
 #subject and object values may have different indices
 	if(is.null(S)) S=unique(trp[,1])
 	if(is.null(O)) O=unique(trp[,3])
@@ -73,7 +73,7 @@ getTensor3m <- function(trp,S=NULL,P=NULL,O=NULL){
 	for(p in 1:l){
 		Xp=Matrix::sparseMatrix(i=1,j=1,x=0,dims=c(n, m))
 		Xp[G[G[,3]==p,1:2,drop=FALSE]]=1
-		X[[p]]=as(Xp, "TsparseMatrix")#i,j,x
+		X[[p]]=methods::as(Xp, "TsparseMatrix")#i,j,x
 	}
 	return(list(X=X,n=n,m=m,l=l,S=S,O=O,P=P))
 }
@@ -83,7 +83,7 @@ getTnsrijk <- function(X){
     ijk=NULL
 	for(k in 1:length(X)){#NB:
 		if(any(X[[k]]@x==1)){#numeric tensor
-		   tt<- as(X[[k]], "TsparseMatrix")
+		   tt<- methods::as(X[[k]], "TsparseMatrix")
 		   ijk=rbind(ijk,cbind(tt@i[X[[k]]@x==1]+1,k,tt@j[X[[k]]@x==1]+1))
 		}
 	}
@@ -100,7 +100,7 @@ getmode1slices <- function(X){
 	for(s in 1:n){
 		Xp=Matrix::sparseMatrix(i=1,j=1,x=0,dims=c(l, m))
 		Xp[G[G[,1]==s,2:3,drop=FALSE]]=1
-		X1[[s]]=as(Xp, "TsparseMatrix")#i,j,x
+		X1[[s]]=methods::as(Xp, "TsparseMatrix")#i,j,x
 	}
 	return(X1)
 }
@@ -122,7 +122,7 @@ truncTnsr <- function(X,H=0,L=0,F=0){
 	ijk=NULL
 	for(k in 1:length(X)){#NB:
 		if(any(X[[k]]@x==1)){#numeric tensor
-		   tt<- as(X[[k]], "TsparseMatrix")
+		   tt<- methods::as(X[[k]], "TsparseMatrix")
 		   ijk=rbind(ijk,cbind(tt@i[X[[k]]@x==1]+1,k,tt@j[X[[k]]@x==1]+1))
 		}
 	}
@@ -145,7 +145,7 @@ tnsr2xyz<-function(tnsr,fname){
 	for(k in 1:tnsr$l){
 		print(sprintf("predicate:%d",k))
 		# ij=which(tnsr$X[[i]]==1,arr.ind=TRUE)
-		s1=as(tnsr$X[[k]],"TsparseMatrix")
+		s1=methods::as(tnsr$X[[k]],"TsparseMatrix")
 		i=s1@i+1
 		j=s1@j+1
 		if(tnsr$X[[k]]@x[1]==0){# caused by bad initialization
@@ -156,6 +156,50 @@ tnsr2xyz<-function(tnsr,fname){
 	}
 	close(con)
 }	
+
+#12/1/2020
+tensor2mat<-function(X,binary=FALSE,symmetrize=FALSE){
+##X list of matrices (lateral slices)
+    # ijk=getTnsrijk(X)
+    alli=NULL
+    allj=NULL
+    for(k in 1:length(X)){#NB:
+		if(any(X[[k]]@x==1)){#numeric tensor
+		   # tt<- methods::as(X[[k]], "TsparseMatrix")
+		   # ijk=rbind(ijk,cbind(tt@i[X[[k]]@x==1]+1,k,tt@j[X[[k]]@x==1]+1))
+           alli=append(alli,X[[k]]@i[X[[k]]@x==1]+1)
+           allj=append(allj,X[[k]]@j[X[[k]]@x==1]+1)
+		}
+	}
+    n=nrow(X[[1]])
+    
+    if(binary && !symmetrize){
+        Xp=Matrix::sparseMatrix(i=alli,j=allj,x=1,dims=c(n, n))
+        Xp@x[Xp@x > 0]=1 
+    }else{ 
+        if(symmetrize){
+           ii=append(alli,allj); jj=append(allj,alli)
+           if(binary){
+              # tmpij=cbind(ii,jj)[!duplicated(paste(ii,jj)),]
+              Xp=Matrix::sparseMatrix(i=ii,j=jj,x=1,dims=c(n, n))
+               Xp@x[Xp@x > 0]=1               
+            }else{
+               # tmpc=table(paste(ii,jj))
+               # tmpij=matrix(as.integer(unlist(strsplit(names(tmpc),split=' '))),ncol=2,byrow=TRUE)
+               Xp=Matrix::sparseMatrix(i=ii,j=jj,x=1,dims=c(n, n)) 
+           }
+        }else{#not symmetrize & not binary
+               Xp=Matrix::sparseMatrix(i=alli,j=allj,x=1,dims=c(n, n))            
+        }
+    }
+return(Xp)
+}
+
+getPrdcnts<-function(X){
+  ijk=getTnsrijk(X)
+  tt=table(ijk[,2])
+  return(as.vector(tt[as.character(sort(as.integer(names(tt))))]))
+}
 
 # Usage
  # fname='sider_xyz.txt'

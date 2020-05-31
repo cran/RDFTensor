@@ -129,7 +129,7 @@ tnsr=getTensor(trp)
     R=tt$R
     A=tt$A
 s1=A\%*\%R[[1]]\%*\%Matrix::t(A)
-s2=A\%*\%R[[1]]\%*\%Matrix::t(A)
+s2=A\%*\%R[[2]]\%*\%Matrix::t(A)
 #predict the party of AlGore (no explicit info is given in the nt file)
 print(s1[tnsr$SO=='<http://example.com/AlGore>',tnsr$SO=='<http://example.com/RepublicanParty>'])
 print(s1[tnsr$SO=='<http://example.com/AlGore>',tnsr$SO=='<http://example.com/DemocraticParty>'])
