@@ -72,7 +72,8 @@ The result is a LIST of three items:
       "Factorizing YAGO: Scalable Machine Learning for Linked Data"
       WWW 2012, Lyon, France
       
-    -SynthG: mimicking RDF Graphs Using Tensor Factorization, Desouki et al
+    -SynthG: mimicking RDF Graphs Using Tensor Factorization,
+	 Desouki et al.  IEEE ICSC 2021
 }
 \author{
 Abdelmoneim Amer Desouki
